@@ -180,8 +180,14 @@ window.addEventListener('DOMContentLoaded', () => {
         return await res.json();
     };
 
-    getResources('http://localhost:3000/menu').then((data) => {
-        data.forEach(({ img, altimg, title, descr, price }) => {
+    // getResources('http://localhost:3000/menu').then((data) => {
+    //     data.forEach(({ img, altimg, title, descr, price }) => {
+    //         new MenuCard(img, altimg, title, descr, price, '.menu .container', 'menu__item').render();
+    //     });
+    // });
+
+    axios.get('http://localhost:3000/menu').then((data) => {
+        data.data.forEach(({ img, altimg, title, descr, price }) => {
             new MenuCard(img, altimg, title, descr, price, '.menu .container', 'menu__item').render();
         });
     });
@@ -271,4 +277,44 @@ window.addEventListener('DOMContentLoaded', () => {
     // fetch('http://localhost:3000/menu')
     //     .then((data) => data.json())
     //     .then((res) => console.log(res));
+
+    // Slider
+
+    const prev = document.querySelector('.offer__slider-prev'),
+        slides = document.querySelectorAll('.offer__slide'),
+        next = document.querySelector('.offer__slider-next');
+
+    let slideIndex = 1;
+
+    showSlides(slideIndex);
+    document.querySelector('#total').textContent = slides.length < 10 ? '0' + slides.length : slides.length;
+
+    function showSlides(n) {
+        if (n > slides.length) {
+            slideIndex = 1;
+        }
+
+        if (n < 1) {
+            slideIndex = slides.length;
+        }
+
+        slides.forEach((slide) => {
+            slide.style.display = 'none';
+            slide.classList.add('fade');
+        });
+        slides[slideIndex - 1].style.display = 'block';
+        document.querySelector('#current').textContent = slideIndex < 10 ? '0' + slideIndex : slideIndex;
+    }
+
+    function plusSlides(n) {
+        showSlides((slideIndex += n));
+    }
+
+    prev.addEventListener('click', () => {
+        plusSlides(-1);
+    });
+
+    next.addEventListener('click', () => {
+        plusSlides(1);
+    });
 });
