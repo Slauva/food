@@ -5,30 +5,6 @@ window.addEventListener('DOMContentLoaded', () => {
         tabsContent = document.querySelectorAll('.tabcontent'),
         tabsParent = document.querySelector('.tabheader__items');
 
-    const data = [
-        {
-            src: 'img/tabs/vegy.jpg',
-            alt: 'vegy',
-            title: 'Меню "Фитнес"',
-            descr: 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-            price: 11,
-        },
-        {
-            src: 'img/tabs/elite.jpg',
-            alt: 'elite',
-            title: 'Меню "Премиум"',
-            descr: 'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-            price: 12,
-        },
-        {
-            src: 'img/tabs/post.jpg',
-            alt: 'post',
-            title: 'Меню "Постное"',
-            descr: 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-            price: 13,
-        },
-    ];
-
     function hideTabContent() {
         tabsContent.forEach((item) => {
             item.classList.add('hide');
@@ -194,13 +170,41 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    data.forEach((card) => {
-        new MenuCard(card.src, card.alt, card.title, card.descr, card.price, '.menu .container', 'menu__item').render();
+    const getResources = async (url) => {
+        const res = await fetch(url);
+
+        if (!res.ok) {
+            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
+        }
+
+        return await res.json();
+    };
+
+    getResources('http://localhost:3000/menu').then((data) => {
+        data.forEach(({ img, altimg, title, descr, price }) => {
+            new MenuCard(img, altimg, title, descr, price, '.menu .container', 'menu__item').render();
+        });
     });
 
     // Form
 
     const forms = document.querySelectorAll('form');
+
+    forms.forEach((item) => {
+        bindPostData(item);
+    });
+
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json',
+            },
+            body: data,
+        });
+
+        return await res.json();
+    };
 
     const message = {
         loading: 'img/spinner.svg',
@@ -233,7 +237,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
 
-    function postData(form) {
+    function bindPostData(form) {
         form.addEventListener('submit', (event) => {
             event.preventDefault();
 
@@ -244,21 +248,11 @@ window.addEventListener('DOMContentLoaded', () => {
                 margin: 0 auto;
             `;
             form.insertAdjacentElement('afterend', statusMessage);
+
             const formData = new FormData(form);
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-            const object = {};
-            formData.forEach((item, key) => {
-                object[key] = item;
-            });
-
-            fetch('server.php', {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json',
-                },
-                body: JSON.stringify(object),
-            })
-                .then((data) => data.text())
+            postData('http://localhost:3000/requests', json)
                 .then((data) => {
                     console.log(data);
                     showThanksModal(message.success);
@@ -273,12 +267,8 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    forms.forEach((item) => {
-        postData(item);
-    });
-
     // to start server print the command in terminal: npx json-server --watch db.json
-    fetch('http://localhost:3000/menu')
-        .then((data) => data.json())
-        .then((res) => console.log(res));
+    // fetch('http://localhost:3000/menu')
+    //     .then((data) => data.json())
+    //     .then((res) => console.log(res));
 });
