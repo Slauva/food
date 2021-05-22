@@ -276,4 +276,9 @@ window.addEventListener('DOMContentLoaded', () => {
     forms.forEach((item) => {
         postData(item);
     });
+
+    // to start server print the command in terminal: npx json-server --watch db.json
+    fetch('http://localhost:3000/menu')
+        .then((data) => data.json())
+        .then((res) => console.log(res));
 });
